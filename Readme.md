@@ -1,22 +1,4 @@
-Absolutely — here is a **professional, startup-grade, investor-friendly, developer-friendly README.md** tailored specifically for **UrbanSphere**, your distributed microservices platform.
-
-It includes:
-
-✔ Clean project description
-✔ Architecture diagram (Mermaid)
-✔ Features
-✔ Tech stack
-✔ Monorepo structure
-✔ Local development setup
-✔ Microservices overview
-✔ Contribution guidelines
-✔ Future roadmap
-
-You can copy-paste this directly into your GitHub repo.
-
----
-
-# ⭐ **README.md (UrbanSphere)**
+# ⭐ **UrbanSphere**
 
 *Modern, Smart Mobility & Safety Platform — Event-Driven, Cloud-Ready, Scalable*
 
