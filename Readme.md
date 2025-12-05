@@ -276,7 +276,7 @@ To be added.
 
 # 💬 Contact
 
-**Ashutosh Modanwal**
+**UrbanSphere Team**
 Creator & Maintainer
 mailto: [ashu.modanwal15@gmail.com](mailto:ashu.modanwal15@gmail.com)
 
