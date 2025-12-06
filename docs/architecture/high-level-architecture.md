@@ -1,44 +1,49 @@
-UrbanSphere — High-Level Architecture Overview
+# 🏙️ **UrbanSphere — High-Level Architecture Overview**
+A modern **cloud-native**, **event-driven**, and **microservices-based** Smart Mobility & City Safety platform.  
+Designed for **real-time telemetry**, **routing**, **traffic intelligence**, **hazard detection**, and **community safety** at massive scale.
 
-UrbanSphere is a cloud-native, event-driven Smart Mobility & City Safety platform designed to handle real-time telemetry ingestion, routing, traffic modeling, hazard detection, and user/community interactions at scale.
-The platform is built using Java 21, Spring Boot 3, Kafka (MSK), Redis, Postgres, S3, Kubernetes (EKS) and follows strict microservice/domain boundaries.
+Built using:
 
-## 1. Architecture Goals
-Functional Goals
+- **Java 21**, **Spring Boot 3**
+- **Kafka (Amazon MSK)**
+- **Postgres (RDS Multi-AZ)**
+- **Redis (ElastiCache)**
+- **Object storage (S3)**
+- **EKS (Kubernetes)**
+- Strict microservice/domain boundaries
+- Strong security with IAM, KMS, WAF, mTLS
 
-User authentication & RBAC
+---
 
-Real-time GPS ingestion
+# 🎯 **1. Architecture Goals**
 
-Routing & traffic computation
+## ✅ Functional Goals
+- User authentication & RBAC
+- Real-time GPS ingestion
+- Routing & traffic computation
+- Hazard detection & safety workflows
+- Push/SMS/Email notifications
+- Community (“society”) features
+- Analytics & historical insights
 
-Hazard detection & safety workflow
+## 🎛️ Non-Functional Goals
+- **High Availability** → 99.9% for critical APIs
+- **Low Latency** → p95 < 300ms
+- **Scalability** → 100K+ GPS events/sec
+- **Durability** → Multi-AZ Postgres, Kafka, S3
+- **Security** → IAM isolation, KMS encryption, mTLS
+- **Observability** → Metrics, logs, traces
 
-Notifications (push/SMS/email)
+---
 
-Community (“society”) features
+# 🏗️ **2. System Architecture (High-Level)**
 
-Analytics & historical insights
-
-Non-Functional Goals
-
-High availability: 99.9% for critical pathways
-
-Low latency: p95 < 300ms for synchronous APIs
-
-Scalable: tens/hundreds of thousands of GPS events/sec
-
-Durable: multi-AZ Postgres + Kafka + S3
-
-Secure: KMS encryption, IAM isolation, mTLS inside cluster
-
-Observable: metrics, logs, traces with OpenTelemetry
-
-## 2. System Architecture (High-Level)
+```mermaid
 flowchart LR
+
 subgraph Clients
-C[Mobile/Web Clients]
-IoT[IoT Devices / GPS Trackers]
+    C[Mobile/Web Clients]
+    IoT[IoT Devices / GPS Trackers]
 end
 
 C -->|HTTPS / WebSocket| ALB[Amazon ALB + WAF]
@@ -46,16 +51,16 @@ IoT -->|HTTP / MQTT / gRPC| ALB
 
 ALB --> APIGW[API Gateway (EKS)]
 
-subgraph EKS[Microservices on EKS]
-Auth[auth-service]
-User[user-service]
-Location[location-service]
-Routing[routing-service]
-Traffic[traffic-service]
-Safety[safety-service]
-Notification[notification-service]
-Society[society-service]
-Analytics[analytics-worker]
+subgraph EKS[Microservices on Amazon EKS]
+    Auth[auth-service]
+    User[user-service]
+    Location[location-service]
+    Routing[routing-service]
+    Traffic[traffic-service]
+    Safety[safety-service]
+    Notification[notification-service]
+    Society[society-service]
+    Analytics[analytics-worker]
 end
 
 APIGW --> Auth
@@ -67,11 +72,11 @@ APIGW --> Traffic
 APIGW --> Notification
 APIGW --> Society
 
-subgraph MSK[Kafka / Amazon MSK]
-DL[(device.location.v1)]
-HR[(hazard.report.v1)]
-RU[(routing.request.v1)]
-UA[(user.activity.v1)]
+subgraph MSK[Kafka Cluster (Amazon MSK)]
+    DL[(device.location.v1)]
+    HR[(hazard.report.v1)]
+    RU[(routing.request.v1)]
+    UA[(user.activity.v1)]
 end
 
 Location --> DL
@@ -86,113 +91,111 @@ HR --> Notification
 HR --> Analytics
 
 subgraph Storage[Persistent Storage Layer]
-RDS[(Postgres - Multi AZ)]
-Redis[(Redis Cache)]
-S3[(Object Storage)]
+    RDS[(Postgres - Multi AZ)]
+    Redis[(Redis Cache)]
+    S3[(Object Storage)]
 end
 
 Auth --> RDS
 User --> RDS
 Traffic --> RDS
 Safety --> RDS
+
 Routing --> Redis
-AllServices --> S3
 
-## 3. Architectural Layers
+EKS --> S3
+```
 
-UrbanSphere is divided into distinct layers for scalability, security, and clarity.
+---
 
-### 3.1 Edge Layer
+# 🧩 **3. Architectural Layers**
 
-Components:
+UrbanSphere is divided into distinct layers for security, scalability, and modularity.
 
-AWS ALB
+---
 
-AWS WAF
+## 🔹 **3.1 Edge Layer**
 
-ACM Certificates (TLS termination)
+### Components
+- **AWS ALB** (Application Load Balancer)
+- **AWS WAF** (Firewall)
+- **ACM Certificates** (TLS termination)
 
-Responsibilities:
+### Responsibilities
+- First entry point
+- Enforce HTTPS
+- Layer-7 intelligent routing
+- DDoS & Bot mitigation
+- Optional IP/geo filtering
 
-First entry point
+---
 
-HTTPS enforcement
+## 🔹 **3.2 API Gateway Layer (EKS)**
+A lightweight gateway without business logic.
 
-Layer-7 routing
+### Responsibilities
+- JWT validation (public JWK from Auth)
+- Rate limiting
+- Routing to microservices
+- API versioning
+- Fast timeouts & fallback
 
-Bot/DDoS mitigation
-
-Optional IP filtering
-
-### 3.2 API Gateway Layer
-
-A lightweight gateway deployed inside EKS.
-
-Responsibilities:
-
-Validate JWT (public keys from Auth)
-
-Enforce rate limits
-
-Request routing
-
-API versioning
-
-Fail-fast timeouts
-
-Non-responsibilities:
-
-❌ No business logic
-
-❌ No storage
-
+### Non-Responsibilities
+❌ No business logic  
+❌ No storage  
 ❌ No external API calls
 
-### 3.3 Microservices Layer
+---
 
-Each service:
+## 🔹 **3.3 Microservices Layer (Spring Boot 3)**
 
-Is a Spring Boot 3 app
+Every service:
+- Owns its **data schema**
+- Emits/consumes **Kafka events**
+- Runs in isolated **Kubernetes pods**
+- Uses **OpenTelemetry instrumentation**
 
-Runs in its own pod
+### **Domain Services Overview**
 
-Owns its database schema
+| Service | Responsibilities |
+|--------|------------------|
+| **auth-service** | Login, register, JWT issuance, refresh tokens, RBAC |
+| **user-service** | Profile, privacy, devices, preferences |
+| **location-service** | GPS ingestion, normalization, publishing telemetry |
+| **traffic-service** | Congestion modeling, segment speeds, anomaly checks |
+| **routing-service** | Route computation, caching, hazard-aware routing |
+| **safety-service** | Accident/hazard reports, classification |
+| **notification-service** | Push, SMS, email delivery |
+| **society-service** | Communities, societies, public posts |
+| **analytics-worker** | Offline analytics, ETL, batch jobs |
 
-Emits/consumes Kafka events
+---
 
-Uses OpenTelemetry instrumentation
+# 🚦 **4. Event-Driven Backbone (Kafka / MSK)**
 
-Services list (Domain-driven)
-Service	Responsibilities
-auth-service	Login, register, JWT, refresh tokens, RBAC
-user-service	Profile, privacy settings, device metadata
-location-service	GPS ingestion, normalization, publish telemetry
-traffic-service	Real-time congestion & segment speed modeling
-routing-service	Route calculation + caching
-safety-service	Hazard reporting & classification
-notification-service	Push/SMS/email delivery
-society-service	Community management
-analytics-worker	Offline analytics & ETL
-## 4. Event-Driven Backbone (Kafka / MSK)
+Kafka is the **central nervous system** of UrbanSphere.
 
-Kafka provides:
+### Benefits
+- High-throughput stream ingestion
+- Ordering guarantees per device
+- Fan-out to multiple consumers
+- Replay for ML & analytics
+- Decouples microservices
 
-High-throughput processing
+### Kafka Topics
 
-Ordering per device
+| Topic | Purpose | Key |
+|-------|---------|-----|
+| **device.location.v1** | Real-time GPS stream | `deviceId` |
+| **hazard.report.v1** | Accident/hazard reports | `hazardId` |
+| **routing.request.v1** | Routing request logs | `requestId` |
+| **user.activity.v1** | User audit trail | `userId` |
 
-Fan-out to many consumers
+---
 
-Replay for analytics & ML
+## Kafka Flow Diagram
 
-Loose coupling between services
-
-Kafka Topics Used
-Topic	Purpose	Key
-device.location.v1	Real-time GPS stream	deviceId
-hazard.report.v1	Hazard events	hazardId
-routing.request.v1	Route request logs	requestId
-user.activity.v1	Audit trail	userId
+```mermaid
 flowchart LR
 LocationSvc --> DL[device.location.v1]
 DL --> Traffic
@@ -205,54 +208,55 @@ HR --> Analytics
 
 RoutingSvc --> RR[routing.request.v1]
 UserSvc --> UA[user.activity.v1]
+```
 
-## 5. Storage Architecture
-🔵 Postgres (RDS Multi-AZ)
+---
 
-Used for durable, relational workloads:
+# 🗄️ **5. Storage Architecture**
 
-Users
+## 🔵 **Postgres (RDS – Multi-AZ)**
+Used for durable relational workloads:
 
-Hazards
+- Users
+- Hazards
+- Traffic aggregates
+- Society data
+- Device metadata
+- Tokens (optional — Redis recommended)
 
-Traffic aggregates
+---
 
-Society data
-
-Refresh tokens (optional — Redis recommended)
-
-🔴 Redis Cache
-
+## 🔴 **Redis Cache (ElastiCache)**
 Used for:
 
-Route caching
+- Cached routes
+- Throttling counters
+- Recent location snapshots
+- Transient/session-like values
 
-Throttling counters
+---
 
-Recent location snapshots
-
-Session-like transient values
-
-🟡 S3
+## 🟡 **S3 Object Storage**
 
 Stores:
 
-Telemetry dumps
+- Raw telemetry dumps
+- Analytics snapshots
+- Machine learning datasets
+- File attachments (reports, images, etc.)
 
-Analytics snapshots
+---
 
-ML datasets
+# 🔐 **6. Security Architecture**
 
-File attachments
-
-## 6. Security Architecture (High-Level)
+```mermaid
 flowchart TB
 User --> ALB[ALB + TLS + WAF]
 
-subgraph AuthLayer[Authentication & IAM]
-JWT[RS256 JWT Validation]
-RBAC[Role-Based Access Control]
-KMS[KMS - Private Key Storage]
+subgraph AuthLayer[Authentication & IAM Controls]
+    JWT[RS256 JWT Validation]
+    RBAC[Role-Based Access Control]
+    KMS[KMS – Private Key Storage]
 end
 
 ALB --> JWT
@@ -263,91 +267,80 @@ Services --> Kafka
 Services --> Redis
 
 Services --> IRSA[IAM Roles for Service Accounts]
+```
 
-Security Principles
+### Security Principles
+- TLS everywhere
+- RS256 JWT with key rotation
+- Private keys stored in KMS
+- IRSA to restrict AWS permissions
+- Kafka SASL/IAM authentication
+- RDS/MSK encrypted at rest
+- WAF blocking OWASP threats
 
-TLS everywhere (internal + external)
+---
 
-RS256 JWT with rotating keys
+# 📊 **7. Observability Architecture**
 
-IRSA to restrict AWS permissions
+## 🔍 Tracing
+- OpenTelemetry + OTel SDK
+- `trace_id` propagated via HTTP + Kafka
+- Export to **AWS X-Ray / Jaeger**
 
-Kafka SASL/IAM & encryption
+## 📈 Metrics
+Collected via Micrometer → Prometheus → Grafana:
 
-RDS/MSK encrypted at rest
+- HTTP latency
+- Kafka consumer lag
+- DB query performance
+- Redis cache hit rate
+- Error spikes
 
-WAF for common OWASP threats
+## 📝 Logging
+- JSON structured logs
+- Log correlation with `trace_id`
+- Shipped to CloudWatch / ELK
 
-## 7. Observability Architecture
-Tracing
+---
 
-OpenTelemetry SDK
+# 🚢 **8. Deployment & Infrastructure**
 
-trace_id propagated via HTTP + Kafka headers
+## Infrastructure Components
+- **Amazon EKS** (Microservices)
+- **Amazon MSK** (Kafka)
+- **Amazon RDS** (Postgres)
+- **ElastiCache Redis**
+- **S3 Storage**
+- **CloudWatch + Prometheus + Grafana**
+- **ArgoCD GitOps**
+- **GitHub Actions CI/CD**
 
-Exported to AWS X-Ray / Jaeger
+---
 
-Metrics
+## CI/CD Flow
 
-Collected via Micrometer → Prometheus → Grafana
-
-HTTP latency
-
-Kafka lag
-
-DB query time
-
-Cache hit rate
-
-Error spikes
-
-Logging
-
-JSON structured logs
-
-Include trace_id for correlation
-
-Centralized in CloudWatch / ELK
-
-## 8. Deployment & Infrastructure Overview
-Infrastructure Components
-
-Amazon EKS (cluster for microservices)
-
-Amazon MSK (Kafka)
-
-Amazon RDS (Postgres)
-
-ElastiCache Redis
-
-S3 buckets
-
-CloudWatch + Prometheus + Grafana
-
-GitHub Actions → ECR → ArgoCD
-
-CI/CD Flow (High-Level)
+```mermaid
 flowchart LR
 Dev[Developer Commit] --> GH[GitHub Actions]
 GH --> Build[Build + Test]
 Build --> ECR[ECR (Docker Images)]
-ECR --> Argo[ArgoCD GitOps]
+ECR --> Argo[ArgoCD (GitOps Sync)]
 Argo --> EKS[EKS Deployment]
+```
 
-## 9. Summary
+---
 
-UrbanSphere is a distributed, real-time, event-driven system that combines:
+# 🧾 **9. Summary**
 
-Microservices for separation of responsibilities
+UrbanSphere is a **distributed, real-time, event-driven platform** that combines:
 
-Kafka for high-throughput, scalable streaming
+- 🧩 Microservices (EKS)
+- ⚡ Kafka (MSK) Streaming
+- 🗄️ Postgres, Redis, S3 Storage
+- 🔐 Security (WAF, IAM, KMS, mTLS)
+- 🔎 Observability (OTel, Prometheus, Grafana)
+- 🚦 Core Mobility Intelligence (routing, traffic, hazards)
 
-EKS for container orchestration
+It is engineered for **scalability**, **reliability**, **fault-tolerance**, and **developer clarity** to meet the challenges of modern smart cities.
 
-Postgres + Redis + S3 for reliable storage
-
-WAF + ALB + KMS + IAM for strong security
-
-OpenTelemetry + Prometheus + Grafana for observability
-
-This architecture enables scalability, reliability, and maintainability while supporting the complex needs of smart mobility & city safety.
+---
