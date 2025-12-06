@@ -38,6 +38,7 @@ Built using:
 
 # 🏗️ **2. System Architecture (High-Level)**
 
+
 ```mermaid
 flowchart LR
 
