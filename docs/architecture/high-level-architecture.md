@@ -104,7 +104,11 @@ Safety --> RDS
 
 Routing --> Redis
 
-EKS --> S3
+Analytics --> S3
+Safety --> S3
+Traffic --> S3
+Routing --> S3
+
 ```
 
 ---
