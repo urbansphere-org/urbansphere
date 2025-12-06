@@ -73,7 +73,7 @@ APIGW --> Traffic
 APIGW --> Notification
 APIGW --> Society
 
-subgraph MSK[Kafka Cluster (Amazon MSK)]
+subgraph MSK[Kafka Cluster - Amazon MSK]
     DL[(device.location.v1)]
     HR[(hazard.report.v1)]
     RU[(routing.request.v1)]
