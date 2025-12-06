@@ -50,7 +50,7 @@ end
 C -->|HTTPS / WebSocket| ALB[Amazon ALB + WAF]
 IoT -->|HTTP / MQTT / gRPC| ALB
 
-ALB --> APIGW[API Gateway (EKS)]
+ALB --> APIGW[API Gateway - EKS]
 
 subgraph EKS[Microservices on Amazon EKS]
     Auth[auth-service]
@@ -328,8 +328,8 @@ Collected via Micrometer → Prometheus → Grafana:
 flowchart LR
 Dev[Developer Commit] --> GH[GitHub Actions]
 GH --> Build[Build + Test]
-Build --> ECR[ECR (Docker Images)]
-ECR --> Argo[ArgoCD (GitOps Sync)]
+Build --> ECR[ECR - Docker Images]
+ECR --> Argo[ArgoCD - GitOps Sync]
 Argo --> EKS[EKS Deployment]
 ```
 
