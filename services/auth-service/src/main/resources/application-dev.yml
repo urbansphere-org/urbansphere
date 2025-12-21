@@ -1,0 +1,14 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5434/urbansphere_auth
+    username: urbansphere
+    password: urbansphere
+    driver-class-name: org.postgresql.Driver
+
+  flyway:
+    url: jdbc:postgresql://localhost:5434/urbansphere_auth
+    user: urbansphere
+    password: urbansphere

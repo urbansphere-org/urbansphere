@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <!-- ========================================================= -->
+    <!--  Common properties (Netflix / Amazon style)               -->
+    <!-- ========================================================= -->
+
+    <!-- Service name -->
+    <property name="SERVICE_NAME" value="auth-service"/>
+
+    <!-- Force logs inside service directory -->
+    <property name="LOG_PATH"
+              value="${LOG_PATH:-services/auth-service/logs}"/>
+
+    <!-- Unified log pattern -->
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
+
+    <!-- ========================================================= -->
+    <!--  Console Appender                                         -->
+    <!-- ========================================================= -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ========================================================= -->
+    <!--  Rolling File Appender                                    -->
+    <!-- ========================================================= -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+        <file>${LOG_PATH}/${SERVICE_NAME}.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>
+                ${LOG_PATH}/${SERVICE_NAME}.%d{yyyy-MM-dd}.%i.log
+            </fileNamePattern>
+
+            <!-- Keep 14 days -->
+            <maxHistory>14</maxHistory>
+
+            <!-- Size + Time based rolling -->
+            <timeBasedFileNamingAndTriggeringPolicy
+                    class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ========================================================= -->
+    <!--  DEV PROFILE                                              -->
+    <!-- ========================================================= -->
+    <springProfile name="dev">
+
+        <!-- Application logs -->
+        <logger name="com.urbansphere" level="DEBUG"/>
+
+        <!-- Reduce framework noise -->
+        <logger name="org.springframework" level="INFO"/>
+        <logger name="org.springframework.boot.autoconfigure" level="WARN"/>
+        <logger name="org.hibernate" level="WARN"/>
+
+        <!-- Kill Hikari spam -->
+        <logger name="com.zaxxer.hikari" level="WARN"/>
+
+        <!-- Kill CORS cache spam -->
+        <logger name="org.springframework.web.servlet.handler.HandlerMappingIntrospector"
+                level="ERROR"/>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- ========================================================= -->
+    <!--  STAGE PROFILE                                            -->
+    <!-- ========================================================= -->
+    <springProfile name="stage">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+
+        <logger name="org.hibernate.SQL" level="INFO"/>
+    </springProfile>
+
+    <!-- ========================================================= -->
+    <!--  PROD PROFILE                                             -->
+    <!-- ========================================================= -->
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="FILE"/>
+        </root>
+
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.hibernate" level="WARN"/>
+    </springProfile>
+
+</configuration>

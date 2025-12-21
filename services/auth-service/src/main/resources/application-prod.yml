@@ -1,0 +1,22 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
+
+  flyway:
+    url: ${DB_URL}
+    user: ${DB_USER}
+    password: ${DB_PASS}
+
+  logging:
+    level:
+      root: INFO
+
+
+jwt:
+  private-key-path: ${JWT_PRIVATE_KEY}
+  public-key-path: ${JWT_PUBLIC_KEY}

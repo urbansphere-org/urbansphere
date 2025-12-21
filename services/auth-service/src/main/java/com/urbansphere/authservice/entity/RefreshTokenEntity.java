@@ -20,7 +20,6 @@ public class RefreshTokenEntity {
     @UuidGenerator
     private String id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private String userId;
 

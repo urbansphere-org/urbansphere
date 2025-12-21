@@ -24,10 +24,21 @@ services:
       POSTGRES_PASSWORD: urbansphere
       POSTGRES_DB: urbansphere_default
     ports:
-      - "5434:5432"            # host:container mapping for running services from host/IDE
+      - "5434:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./init-multiple-dbs.sql:/docker-entrypoint-initdb.d/init-multiple-dbs.sql:ro
+
+      # Create all DBs
+      - ./init-multiple-dbs.sql:/docker-entrypoint-initdb.d/00-init-multiple-dbs.sql:ro
+
+      # Run schema for each microservice
+      - ./service-tables/auth-service-table.sql:/docker-entrypoint-initdb.d/01-auth.sql:ro
+      - ./service-tables/user-service-table.sql:/docker-entrypoint-initdb.d/02-user.sql:ro
+      - ./service-tables/location-service-table.sql:/docker-entrypoint-initdb.d/03-location.sql:ro
+      - ./service-tables/routing-service-table.sql:/docker-entrypoint-initdb.d/04-routing.sql:ro
+      - ./service-tables/safety-service-table.sql:/docker-entrypoint-initdb.d/05-safety.sql:ro
+      - ./service-tables/notification-service-table.sql:/docker-entrypoint-initdb.d/06-notification.sql:ro
+
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -h localhost"]
       interval: 5s

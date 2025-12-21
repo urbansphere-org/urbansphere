@@ -1,0 +1,13 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:postgresql://staging-db:5432/authdb
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+  flyway:
+    url: jdbc:postgresql://staging-db:5432/authdb
+    user: ${DB_USER}
+    password: ${DB_PASSWORD}
